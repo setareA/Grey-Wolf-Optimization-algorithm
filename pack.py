@@ -33,11 +33,6 @@ class Pack:
         self.x_beta_w = self.get_best_fitness_n(2)
         self.x_delta_w = self.get_best_fitness_n(3)
 
-
-        #
-        # c = 2 * r2
-        # A = (2a * r1)−a
-
     def harassing_the_prey(self):
 
         a = self.calculate_a()
@@ -75,7 +70,6 @@ class Pack:
 
         self.iteration += 1
 
-
     def get_best_fitness_n(self, n):
 
         self.wolves.sort(key=operator.attrgetter('fitness'))
@@ -89,6 +83,10 @@ class Pack:
         if self.iteration == 0:
             self.x_t = self.x_alfa
             return self.x_alfa
+
+    def get_iteraiton(self):
+        return self.iteration
+
 
 
 

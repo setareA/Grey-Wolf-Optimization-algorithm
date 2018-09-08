@@ -39,8 +39,7 @@ class Wolf:
                     self.program_list[i].set_node()
                     fit += 1
                     healthy_genes.append(i)
-                    ccc.execute("UPDATE NODES SET RAM = " + str(row[2] - prog.get_ram()) + ", CPU = " + str(
-                        row[3] - prog.get_cpu()) + " WHERE ID = " + str(self.genes[i]))
+                    ccc.execute("UPDATE NODES SET RAM = " + str(row[2] - prog.get_ram()) + ", CPU = " + str(row[3] - prog.get_cpu()) + " WHERE ID = " + str(self.genes[i]))
 
         ccc.close()
 
@@ -59,6 +58,7 @@ class Wolf:
         if f1 > x:
 
             damaged_genes = []
+            healthy_genes = []
             ccc = sqlite3.connect(self.file)
             for i in range(self.num):
                 prog = self.program_list[i]
@@ -66,6 +66,7 @@ class Wolf:
 
                     if row[2] >= prog.get_ram() and row[3] >= prog.get_cpu() and row[4] == prog.get_cpu_type():
                         self.program_list[i].set_node()
+                        healthy_genes.append(i)
                         ccc.execute("UPDATE NODES SET RAM = " + str(row[2] - prog.get_ram()) + ", CPU = " + str(row[3] - prog.get_cpu()) + " WHERE ID = " + str(self.genes[i]))
                     else:
                         damaged_genes.append(i)
@@ -78,18 +79,50 @@ class Wolf:
 
                     for row in ccc.execute("SELECT * FROM NODES WHERE RAM > " + str(prog.get_ram()) + " AND cpu > " + str(prog.get_cpu()) + " AND CPU_TYPE = " + str(prog.get_cpu_type())):
 
-                        temp = self.genes[k]
-                        self.genes[k] = row[0]
-                        self.calc_fitness()
-                        if abs(self.fitness - x) < 15:
+                        if k in healthy_genes:
+                            f1 -= self.beta
+
+                        else:
+                            f1 -= self.beta
+                            f1 += self.alfa
+                        if abs(f1 - x) < 15 or f1 < x:
                             self.program_list[k].set_node()
+                            self.genes[k] = row[0]
                             ccc.execute("UPDATE NODES SET RAM = " + str(row[2] - prog.get_ram()) + ", CPU = " + str(row[3] - prog.get_cpu()) + " WHERE ID = " + str(row[0]))
                             count = 1
                             break
-                        else:
-                            self.genes[k] = temp
-
 
             ccc.close()
             self.calc_fitness()
+
+    def get_genes(self):
+        return self.genes
+
+    def get_empty_genes(self):
+        l = []
+        for i in range(self.num):
+            if self.program_list[i].get_node() == False:
+                l.append(i)
+        return l
+
+    def calc_empty_nodes(self):
+
+        healthy_genes = []
+        ccc = sqlite3.connect(self.file)
+        for i in range(self.num):
+            prog = self.program_list[i]
+            for row in ccc.execute("SELECT * FROM NODES WHERE ID = " + str(self.genes[i])):
+
+                if row[2] >= prog.get_ram() and row[3] >= prog.get_cpu() and row[4] == prog.get_cpu_type():
+                    self.program_list[i].set_node()
+                    healthy_genes.append(i)
+                    ccc.execute("UPDATE NODES SET RAM = " + str(row[2] - prog.get_ram()) + ", CPU = " + str(row[3] - prog.get_cpu()) + " WHERE ID = " + str(self.genes[i]))
+
+        ccc.close()
+
+        all_nodes = list(range(1, self.num_of_nodes + 1))
+        empty_nodes_count = len(set(all_nodes) - set(healthy_genes))
+
+        return empty_nodes_count
+
 
