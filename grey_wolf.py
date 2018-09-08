@@ -21,9 +21,10 @@ def main():
     programs, programs_queue = program.create_list(num_of_programs)
 
     init_pack_size = 40
+    max_number_of_iterations = 50
     UCE = 1
 
-    new_pack = pack.Pack(init_pack_size, num_of_programs, filename, programs, num_of_nodes, UCE)
+    new_pack = pack.Pack(init_pack_size, num_of_programs, filename, programs, num_of_nodes,max_number_of_iterations, UCE)
 
 
 if __name__ == "__main__":

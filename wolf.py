@@ -47,9 +47,49 @@ class Wolf:
         all_nodes = list(range(1, self.num_of_nodes + 1))
         on_servers = len(healthy_genes)
 
-        self.fitness = 1 / (self.alfa * on_servers * self.UCE + self.beta * (self.num - fit))
+        self.fitness = (self.alfa * on_servers * self.UCE + self.beta * (self.num - fit))
         with open('fitness.txt', 'a') as out:
             out.write(str(self.fitness)+"  fit : +"+str(fit)+" on_servers : "+str(on_servers)+'\n\n' + "#################" + '\n\n')
 
     def get_fitness(self):
         return self.fitness
+
+    def update(self, x):
+        f1 = self.get_fitness()
+        if f1 > x:
+
+            damaged_genes = []
+            ccc = sqlite3.connect(self.file)
+            for i in range(self.num):
+                prog = self.program_list[i]
+                for row in ccc.execute("SELECT * FROM NODES WHERE ID = " + str(self.genes[i])):
+
+                    if row[2] >= prog.get_ram() and row[3] >= prog.get_cpu() and row[4] == prog.get_cpu_type():
+                        self.program_list[i].set_node()
+                        ccc.execute("UPDATE NODES SET RAM = " + str(row[2] - prog.get_ram()) + ", CPU = " + str(row[3] - prog.get_cpu()) + " WHERE ID = " + str(self.genes[i]))
+                    else:
+                        damaged_genes.append(i)
+            count = 0
+            for k in damaged_genes:
+                if count == 1:
+                    break
+                else:
+                    prog = self.program_list[k]
+
+                    for row in ccc.execute("SELECT * FROM NODES WHERE RAM > " + str(prog.get_ram()) + " AND cpu > " + str(prog.get_cpu()) + " AND CPU_TYPE = " + str(prog.get_cpu_type())):
+
+                        temp = self.genes[k]
+                        self.genes[k] = row[0]
+                        self.calc_fitness()
+                        if abs(self.fitness - x) < 15:
+                            self.program_list[k].set_node()
+                            ccc.execute("UPDATE NODES SET RAM = " + str(row[2] - prog.get_ram()) + ", CPU = " + str(row[3] - prog.get_cpu()) + " WHERE ID = " + str(row[0]))
+                            count = 1
+                            break
+                        else:
+                            self.genes[k] = temp
+
+
+            ccc.close()
+            self.calc_fitness()
+
