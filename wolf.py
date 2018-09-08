@@ -47,7 +47,7 @@ class Wolf:
         all_nodes = list(range(1, self.num_of_nodes + 1))
         on_servers = len(healthy_genes)
 
-        self.fitness = 1 / pow((self.alfa * on_servers * self.UCE + self.beta * (self.num - fit)), 4)
+        self.fitness = 1 / (self.alfa * on_servers * self.UCE + self.beta * (self.num - fit))
         with open('fitness.txt', 'a') as out:
             out.write(str(self.fitness)+"  fit : +"+str(fit)+" on_servers : "+str(on_servers)+'\n\n' + "#################" + '\n\n')
 
